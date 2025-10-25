@@ -11,7 +11,7 @@ jobs:
   -name: Checkout Code
    uses:actions/checkout@v2
    
-  -name: set up python
+  -name: set up Python
    uses:actions/setup-python@v2
    with:
     python-version:3.8
