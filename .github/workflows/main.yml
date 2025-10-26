@@ -14,7 +14,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: 3.8
 
       - name: Install Bandit
         run: pip install bandit
@@ -22,15 +22,16 @@ jobs:
       - name: Run Bandit Scan
         run: bandit -ll -ii -r . -f json -o bandit-report.json
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4  # ✅ updated version
+      - name: Upload Bandit Report
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: bandit-findings
           path: bandit-report.json
 
+  
   image_scan:
-    name: Build Image and Run Image Scan
+    name: Build, Push, and Scan Image
     runs-on: ubuntu-latest
 
     steps:
@@ -39,26 +40,33 @@ jobs:
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
-        with:
-          install: true
 
-      - name: Build Docker Image
-        run: docker build -f Dockerfile -t myapp:latest .
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.REPO_PASSWORD}}" | docker login -u "${{ secrets.REPO_USER }}" --password-stdin
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.REPO_USER }}/myapp:latest .
+          docker push ${{ secrets.REPO_USER }}/myapp:latest
 
       - name: Docker Scout Scan
         uses: docker/scout-action@v1.0.9
         with:
+          image: ${{ secrets.REPO_USER }}/myapp:latest
           dockerhub-user: ${{ secrets.REPO_USER }}
           dockerhub-password: ${{ secrets.REPO_PASSWORD }}
-          image: myapp:latest
           command: quickview,cves
           only-severities: critical,high
           sarif-file: scout-report.sarif
-          scan-pulled: true  
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4  #
+      - name: Upload Docker Scout Report
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: docker-scout-findings
           path: scout-report.sarif
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: scout-report.sarif
