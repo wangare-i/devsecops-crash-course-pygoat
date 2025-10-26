@@ -40,9 +40,17 @@ jobs:
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.REPO_PASSWORD }}" | docker login -u "${{ secrets.REPO_USER }}" --password-stdin
 
-      - name: Build docker image
-        run: docker build -t myapp:latest .
+      - name: Build and push image
+        run: |
+          docker build -t ${{ secrets.REPO_USER }}/myapp:latest .
+          docker push ${{ secrets.REPO_USER }}/myapp:latest
+
+      # - name: Build docker image
+      #   run: docker build -t myapp:latest .
 
       - name: Docker Scout Scan
         uses: docker/scout-action@v1.0.9
