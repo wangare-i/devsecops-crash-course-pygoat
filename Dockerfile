@@ -6,6 +6,8 @@ WORKDIR /app
 
 # dependencies for psycopg2
 RUN apt-get update && apt-get install --no-install-recommends -y \
+    gcc \
+    build-essential \
     dnsutils \
     libpq-dev \
     python3-dev \
@@ -19,7 +21,7 @@ ENV PYTHONUNBUFFERED 1
 
 
 # Install dependencies
-RUN python -m pip install --no-cache-dir pip==22.0.4
+RUN pip install --upgrade pip setuptools wheel
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
