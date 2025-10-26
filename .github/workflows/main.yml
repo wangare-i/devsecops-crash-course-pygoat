@@ -55,7 +55,7 @@ jobs:
       - name: Docker Scout Scan
         uses: docker/scout-action@v1.0.9
         with:
-          image: myapp:latest
+          image: ${{secrets.REPO_USER}}/myapp:latest
           dockerhub-user: ${{ secrets.REPO_USER }}
           dockerhub-password: ${{ secrets.REPO_PASSWORD }}
           command: quickview,cves
