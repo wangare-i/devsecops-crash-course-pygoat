@@ -22,10 +22,34 @@ jobs:
       - name: Run Bandit Scan
         run: bandit -ll -ii -r . -f json -o bandit-report.json
 
-      - name: upload artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: bandit-findings
           path: bandit-report.json
-          
+  
+  image_scan:
+    name: Build an image and run scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup docker
+        uses: docker-practice/actions-setup-docker@v1
+        with:
+          docker_version: '20.10.7'
+      - name: Build docker image
+        run:  docker build -f Dockerfile -t myapp:latest .
+
+      - name: Docker Scout scan
+        run: 
+           curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
+           sh install-scout.sh
+           docker scout quickview
+           docker scout cves
+           
+
+        
